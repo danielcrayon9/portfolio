@@ -26,6 +26,23 @@
             max-width: 1400px;
         }
 
+        /* ★ GAS URL 설정 영역 */
+        .gas-config {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #fffde7;
+            padding: 12px 15px;
+            border: 1px solid #ffd54f;
+            box-sizing: border-box;
+        }
+        .gas-config label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+        .gas-config input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 0; font-size: 13px; font-family: 'Pretendard', sans-serif; }
+        .gas-config button { padding: 8px 16px; background: #333; color: #fff; border: none; cursor: pointer; font-size: 13px; font-family: 'Pretendard', sans-serif; }
+        .gas-config.connected { background: #e8f5e9; border-color: #66bb6a; }
+        .gas-config.connected label { color: #2e7d32; }
+
         .drop-zone {
             width: 100%;
             border: 2px dashed #ddd;
@@ -86,7 +103,28 @@
         .btn-export { background-color: #0056b3 !important; }
         .btn-export:hover { background-color: #004494 !important; }
 
-        /* --- 🚀 커스텀 둥근 탭 스타일 --- */
+        /* 로딩 오버레이 */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading-overlay.show { display: flex; }
+        .loading-spinner {
+            background: #fff;
+            padding: 30px 50px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        /* --- 커스텀 둥근 탭 스타일 --- */
         .tabs {
             display: flex;
             gap: 10px;
@@ -100,31 +138,30 @@
         }
 
         .tab-button {
-            background: transparent; /* 🚀 기본 배경색 없음 */
-            border: 1px solid #ffffff52; /* 🚀 흰색 테두리 */
+            background: transparent;
+            border: 1px solid #ffffff52;
             border-radius: 30px;
             padding: 8px 20px; 
             font-size: 15px;
             font-weight: 500;
-            color: #ffffff52; /* 🚀 기본 흰색 글씨 */
+            color: #ffffff52;
             cursor: pointer;
             transition: all 0.2s ease;
             box-sizing: border-box;
         }
 
         .tab-button:hover {
-            border-color: rgba(255, 255, 255, 0.7); /* 살짝 투명해지는 효과 */
+            border-color: rgba(255, 255, 255, 0.7);
             color: rgba(255, 255, 255, 0.7);
         }
 
         .tab-button.active { 
-            background: #2a2a2e; /* 🚀 선택된 탭 검은색 배경 */
+            background: #2a2a2e;
             border-color: #2a2a2e;
-            color: #ffffff; /* 🚀 선택된 탭 흰색 글씨 */
+            color: #ffffff;
             font-weight: 600;
         }
         
-        /* 에디터 관리용 탭 스타일 유지 */
         .tab-button.tab-hidden-admin { margin-left: auto; font-size: 14px; background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #fff; box-shadow: none; }
         .tab-button.tab-hidden-admin.active { background: #ff6b6b; border-color: #ff6b6b; color: #fff; }
 
@@ -160,14 +197,12 @@
         .editable-year:hover { text-decoration: underline; color: #333; }
         .editable-year.active { color: #fff; background-color: #333; border-radius: 4px; padding: 2px 4px; }
 
-        /* 🚀 에디터용 태그 폰트 13px로 수정 */
         .editable-tag { color: #777777; font-size: 13px; background-color: #f6f6f6; border-radius: 4px; padding: 4px 6px; cursor: pointer; }
         .editable-url { color: #888888; font-size: 13px; padding-left: 0; }
 
         .editable-caption:focus, .editable-url:focus { outline: none; background: #f1f3f5; border-radius: 0; }
         .editable-tag:focus, .editable-year:focus { background-color: #e9ecef; border-radius: 4px; outline: none; }
 
-        /* 🚀 에디터용 필터 가짜 태그 폰트 13px로 수정 */
         .filter-tag-btn { display: inline-block; color: #777777; font-size: 13px; background-color: #f6f6f6; border-radius: 4px; padding: 4px 6px; cursor: pointer; margin-right: 4px; margin-bottom: 4px;}
         .filter-tag-btn:hover { text-decoration: underline; color: #333; }
         .filter-tag-btn.active { background-color: #333; color: #fff; text-decoration: none; font-weight: bold; }
@@ -214,7 +249,20 @@
 </head>
 <body>
 
+    <!-- 로딩 오버레이 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner" id="loadingText">업로드 중...</div>
+    </div>
+
     <div class="controls">
+        <!-- GAS URL 설정 -->
+        <div class="gas-config" id="gasConfig">
+            <label>📡 Google Apps Script URL:</label>
+            <input type="text" id="gasUrlInput" placeholder="배포된 웹앱 URL을 입력하세요 (https://script.google.com/macros/s/...)" />
+            <button onclick="saveGasUrl()">연결</button>
+            <button id="migrateBtn" onclick="migrateLocalToCloud()" style="background: #007bff; margin-left: 10px; display:none;">이전 로컬 데이터 마이그레이션</button>
+        </div>
+
         <div id="dropZone" class="drop-zone">
             <p>여러 이미지를 드래그하여 등록하세요</p>
             <p>또는 클릭하여 파일을 선택하세요</p>
@@ -272,9 +320,11 @@
 
     <button class="btn-top" id="btnTop" onclick="scrollToTop()">↑</button>
     <input type="file" id="updateImageInput" accept="image/*" style="display:none;">
-
     <script>
-        let tabsConfig = JSON.parse(localStorage.getItem('portfolio_tabs')) || [
+        // ★★★ Google Apps Script 웹앱 URL ★★★
+        let GAS_WEB_APP_URL = localStorage.getItem('portfolio_gas_url') || '';
+
+        let tabsConfig = [
             { id: 'main', name: '메인' },
             { id: 'logo', name: '로고' },
             { id: 'event', name: '이벤트' }
@@ -285,6 +335,41 @@
         let currentActiveTag = null;
         let currentItemToUpdateId = null; 
 
+        // === GAS URL 관리 ===
+        function saveGasUrl() {
+            const url = document.getElementById('gasUrlInput').value.trim();
+            if (!url) { alert('URL을 입력해주세요.'); return; }
+            GAS_WEB_APP_URL = url;
+            localStorage.setItem('portfolio_gas_url', url);
+            document.getElementById('gasConfig').classList.add('connected');
+            initApp();
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingText').innerText = text || '처리 중...';
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        // === GAS API 호출 헬퍼 ===
+        async function gasGet(params) {
+            const url = new URL(GAS_WEB_APP_URL);
+            Object.keys(params).forEach(k => url.searchParams.append(k, params[k]));
+            const res = await fetch(url.toString());
+            return await res.json();
+        }
+
+        async function gasPost(data) {
+            const res = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            return await res.json();
+        }
+
+        // === 탭 관리 ===
         function renderTabsUI() {
             const tabsContainer = document.getElementById('mainTabsContainer');
             let tabsHtml = `<button class="tab-button active" onclick="switchTab('all')">전체</button>`;
@@ -333,7 +418,7 @@
             `);
         }
 
-        function saveTabConfig() {
+        async function saveTabConfig() {
             const rows = document.querySelectorAll('.tab-edit-row');
             const newTabs = [];
             rows.forEach(row => {
@@ -350,29 +435,30 @@
             const newTabIds = newTabs.map(t => t.id);
             const fallbackTabId = newTabs[0].id;
 
-            const transaction = db.transaction([storeName], "readwrite");
-            const store = transaction.objectStore(storeName);
-            const req = store.getAll();
-
-            req.onsuccess = function(e) {
-                const items = e.target.result;
-                items.forEach(item => {
+            // 기존 탭에 없는 항목들을 첫 번째 탭으로 이동 (GAS에서 업데이트)
+            const listRes = await gasGet({ action: 'list' });
+            if (listRes.success && listRes.items) {
+                for (const item of listRes.items) {
                     if (!newTabIds.includes(item.tabCategory)) {
-                        item.tabCategory = fallbackTabId; 
-                        store.put(item);
+                        await gasGet({ action: 'update', id: item.id, field: 'tabCategory', value: fallbackTabId });
                     }
-                });
+                }
+            }
 
-                tabsConfig = newTabs; 
-                localStorage.setItem('portfolio_tabs', JSON.stringify(tabsConfig)); 
-                
-                closeTabModal();
-                renderTabsUI();
-                loadGalleryData(); 
-            };
+            tabsConfig = newTabs;
+            localStorage.setItem('portfolio_tabs', JSON.stringify(tabsConfig));
+            
+            // GAS에도 저장
+            if (GAS_WEB_APP_URL) {
+                await gasGet({ action: 'saveTabs', config: JSON.stringify(tabsConfig) });
+            }
+            
+            closeTabModal();
+            renderTabsUI();
+            loadGalleryData();
         }
 
-
+        // === 그리드 레이아웃 ===
         function resizeGridItem(item) {
             const rowHeight = 10; 
             const content = item.querySelector('.grid-item-content');
@@ -388,6 +474,7 @@
 
         window.addEventListener("resize", resizeAllGridItems);
 
+        // === 파일 드래그 & 드롭 ===
         let pendingFiles = []; 
 
         const dropZone = document.getElementById('dropZone');
@@ -429,7 +516,19 @@
             }
         }
 
-        function processFiles(files) {
+        // === 이미지 업로드 (Google Drive로) ===
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function processFiles(files) {
+            if (!GAS_WEB_APP_URL) { alert('Google Apps Script URL을 먼저 설정해주세요.'); return; }
+
             const tabVal = document.querySelector('input[name="batchTab"]:checked').value; 
             const captionVal = document.getElementById('batchCaption').value.trim();
             const yearVal = document.getElementById('batchYear').value.trim(); 
@@ -443,39 +542,57 @@
                 tagVal = tagVal.split(/\s+/).map(t => t.startsWith('#') ? t : '#' + t).join(' ');
             }
 
-            for (const file of files) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img_src = e.target.result;
-                    const id = Date.now().toString() + Math.random().toString(36).substring(2, 9); 
-                    const order = Date.now(); 
+            showLoading(`이미지 업로드 중... (0/${files.length})`);
 
-                    const newItem = { 
-                        id: id, img_src: img_src, caption: captionVal, year: yearVal, tag: tagVal, url: urlVal, 
-                        isPc: pcVal, isResponsive: resVal, isMobile: mobVal, order: order,
-                        isHidden: false, 
-                        tabCategory: tabVal 
-                    };
+            for (let i = 0; i < files.length; i++) {
+                showLoading(`이미지 업로드 중... (${i + 1}/${files.length})`);
+                
+                const file = files[i];
+                const base64 = await fileToBase64(file);
+                const id = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+                const order = Date.now();
 
-                    const transaction = db.transaction([storeName], "readwrite");
-                    const store = transaction.objectStore(storeName);
-                    store.add(newItem);
+                try {
+                    const result = await gasPost({
+                        action: 'upload',
+                        items: [{
+                            id: id,
+                            img_base64: base64,
+                            mimeType: file.type,
+                            fileName: file.name,
+                            caption: captionVal,
+                            year: yearVal,
+                            tag: tagVal,
+                            url: urlVal,
+                            isPc: pcVal,
+                            isResponsive: resVal,
+                            isMobile: mobVal,
+                            order: order,
+                            isHidden: false,
+                            tabCategory: tabVal
+                        }]
+                    });
 
-                    transaction.oncomplete = function() {
-                        createGridItem(id, img_src, captionVal, yearVal, tagVal, urlVal, pcVal, resVal, mobVal, false, tabVal);
-                    };
-                };
-                reader.readAsDataURL(file);
+                    if (result.success && result.results && result.results[0]) {
+                        const imgUrl = result.results[0].img_url;
+                        createGridItem(id, imgUrl, captionVal, yearVal, tagVal, urlVal, pcVal, resVal, mobVal, false, tabVal);
+                    }
+                } catch (err) {
+                    console.error('Upload error:', err);
+                    alert(`이미지 업로드 실패: ${file.name}\n${err.message}`);
+                }
             }
+
+            hideLoading();
         }
 
-        function addImages() {
+        async function addImages() {
             if (pendingFiles.length === 0) {
                 alert("첨부된 이미지가 없습니다. 먼저 이미지를 선택해주세요.");
                 return;
             }
 
-            processFiles(pendingFiles);
+            await processFiles(pendingFiles);
             
             pendingFiles = []; 
             fileInput.value = '';
@@ -493,6 +610,7 @@
             if(firstRadio) firstRadio.checked = true; 
         }
 
+        // === 탭 전환 & 필터 ===
         function switchTab(tab) {
             currentTab = tab;
             const allItems = document.querySelectorAll('.grid-item');
@@ -533,33 +651,23 @@
 
         function filterByYearEditor(clickedYear, element) {
             const allItems = document.querySelectorAll('.grid-item');
-            
             document.querySelectorAll('#mainTabsContainer .tab-button').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`#mainTabsContainer .tab-button[onclick="switchTab('all')"]`).classList.add('active');
-            
             currentActiveTag = null;
             document.querySelectorAll('.filter-tag-btn').forEach(t => t.classList.remove('active'));
-
             document.querySelectorAll('.editable-year').forEach(y => y.classList.remove('active'));
 
             if (currentActiveYear === clickedYear) {
-                allItems.forEach(item => {
-                    if(item.getAttribute('data-hidden') !== 'true') item.classList.remove('hidden');
-                });
+                allItems.forEach(item => { if(item.getAttribute('data-hidden') !== 'true') item.classList.remove('hidden'); });
                 currentActiveYear = null;
             } else {
                 allItems.forEach(item => {
                     const yearInput = item.querySelector('.editable-year');
                     const yearStr = yearInput ? yearInput.value.trim() : '';
-                    if (yearStr === clickedYear && item.getAttribute('data-hidden') !== 'true') {
-                        item.classList.remove('hidden');
-                    } else {
-                        item.classList.add('hidden');
-                    }
+                    if (yearStr === clickedYear && item.getAttribute('data-hidden') !== 'true') item.classList.remove('hidden');
+                    else item.classList.add('hidden');
                 });
-                document.querySelectorAll('.editable-year').forEach(y => {
-                    if (y.value.trim() === clickedYear) y.classList.add('active');
-                });
+                document.querySelectorAll('.editable-year').forEach(y => { if (y.value.trim() === clickedYear) y.classList.add('active'); });
                 currentActiveYear = clickedYear;
             }
             setTimeout(resizeAllGridItems, 50);
@@ -567,34 +675,23 @@
 
         function filterByTagEditor(clickedTag, element) {
             const allItems = document.querySelectorAll('.grid-item');
-            
             document.querySelectorAll('#mainTabsContainer .tab-button').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`#mainTabsContainer .tab-button[onclick="switchTab('all')"]`).classList.add('active');
-            
             currentActiveYear = null;
             document.querySelectorAll('.editable-year').forEach(y => y.classList.remove('active'));
-
             document.querySelectorAll('.filter-tag-btn').forEach(t => t.classList.remove('active'));
 
             if (currentActiveTag === clickedTag) {
-                allItems.forEach(item => {
-                    if(item.getAttribute('data-hidden') !== 'true') item.classList.remove('hidden');
-                });
+                allItems.forEach(item => { if(item.getAttribute('data-hidden') !== 'true') item.classList.remove('hidden'); });
                 currentActiveTag = null;
             } else {
                 allItems.forEach(item => {
                     const tagInput = item.querySelector('.editable-tag');
                     const tagsStr = tagInput ? tagInput.value : '';
-                    if (tagsStr.includes(clickedTag) && item.getAttribute('data-hidden') !== 'true') {
-                        item.classList.remove('hidden');
-                    } else {
-                        item.classList.add('hidden');
-                    }
+                    if (tagsStr.includes(clickedTag) && item.getAttribute('data-hidden') !== 'true') item.classList.remove('hidden');
+                    else item.classList.add('hidden');
                 });
-                
-                document.querySelectorAll('.filter-tag-btn').forEach(t => {
-                    if (t.innerText === clickedTag) t.classList.add('active');
-                });
+                document.querySelectorAll('.filter-tag-btn').forEach(t => { if (t.innerText === clickedTag) t.classList.add('active'); });
                 currentActiveTag = clickedTag;
             }
             setTimeout(resizeAllGridItems, 50);
@@ -604,12 +701,10 @@
             const gridItems = document.querySelectorAll('.grid-item:not(.hidden):not(.dragging)'); 
             const viewportHeight = window.innerHeight;
             const fadeZoneHeight = viewportHeight * 0.2; 
-
             gridItems.forEach(item => {
                 const rect = item.getBoundingClientRect();
                 const itemTop = rect.top;
                 const itemBottom = rect.bottom;
-
                 let opacity = 1;
                 if (itemTop > viewportHeight - fadeZoneHeight) {
                     opacity = Math.max(0, (viewportHeight - itemTop) / fadeZoneHeight); 
@@ -620,59 +715,14 @@
             });
         }
 
-        let db;
-        const dbName = "PortfolioGalleryDB";
-        const storeName = "images";
-        const request = indexedDB.open(dbName, 1);
-
-        request.onerror = function(event) { console.error("DB 오류:", event.target.error); };
-        request.onupgradeneeded = function(event) {
-            db = event.target.result;
-            if (!db.objectStoreNames.contains(storeName)) {
-                db.createObjectStore(storeName, { keyPath: "id" });
-            }
-        };
-
-        request.onsuccess = function(event) {
-            db = event.target.result;
-            renderTabsUI(); 
-            
-            const transaction = db.transaction([storeName], "readwrite");
-            const store = transaction.objectStore(storeName);
-            const getAllRequest = store.getAll();
-            
-            getAllRequest.onsuccess = function(e) {
-                const items = e.target.result;
-                let needsUpdate = false;
-                
-                if(items && items.length > 0) {
-                    items.forEach(item => {
-                        if (!item.tabCategory) {
-                            item.tabCategory = tabsConfig[0].id;
-                            store.put(item);
-                            needsUpdate = true;
-                        }
-                    });
-                }
-                loadGalleryData(); 
-            };
-
-            window.addEventListener('load', applyScrollFade);
-            window.addEventListener('scroll', () => {
-                requestAnimationFrame(applyScrollFade);
-                toggleTopButton();
-            }); 
-        };
-
+        // === 그리드 아이템 생성 (Drive URL 기반) ===
         function createGridItem(id, img_src, captionText, yearText, tagText, urlText, isPc = false, isResponsive = false, isMobile = false, isHidden = false, tabCategory = '') {
             const grid = document.getElementById('grid');
             const item = document.createElement('div');
             item.className = 'grid-item';
-            
             item.dataset.id = id; 
             item.setAttribute('data-tabCategory', tabCategory); 
             item.setAttribute('data-hidden', isHidden);
-
             item.setAttribute('draggable', true);
 
             item.addEventListener('dragstart', () => { item.classList.add('dragging'); item.style.opacity = '0.5'; });
@@ -703,7 +753,6 @@
             img.src = img_src;
             img.setAttribute('draggable', false); 
             img.onclick = function() { showLightbox(img_src); };
-            
             img.onload = () => resizeGridItem(item);
 
             const caption = document.createElement('div');
@@ -746,10 +795,8 @@
                 const span = document.createElement('span');
                 span.className = 'device-toggle' + (isActive ? ' active' : '');
                 span.innerText = text;
-                
                 span.addEventListener('mousedown', (e) => { e.stopPropagation(); item.setAttribute('draggable', false); });
                 span.addEventListener('mouseleave', () => item.setAttribute('draggable', true));
-                
                 span.onclick = function(e) {
                     e.stopPropagation();
                     const currentState = this.classList.toggle('active');
@@ -785,7 +832,7 @@
 
             const tagDisplayArea = document.createElement('div');
             tagDisplayArea.style.marginTop = '2px';
-            tagDisplayArea.style.minHeight = '24px'; // 🚀 내용이 없어도 최소 높이 유지
+            tagDisplayArea.style.minHeight = '24px';
             
             function renderTags(tagString) {
                 tagDisplayArea.innerHTML = '';
@@ -800,7 +847,6 @@
                         }
                     });
                 } else {
-                    // 🚀 태그가 비어있을 때 클릭 유도 안내 문구 표시
                     tagDisplayArea.innerHTML = '<span style="color:#adb5bd; font-size:13px; cursor:text;">+ 서브 태그 추가</span>';
                 }
             }
@@ -830,7 +876,6 @@
             [captionEditField, yearEditField, tagEditField, urlEditField].forEach(field => {
                 field.addEventListener('mousedown', () => item.setAttribute('draggable', false));
                 field.addEventListener('blur', () => item.setAttribute('draggable', true));
-                
                 field.addEventListener('focus', function() {
                     if (this.value === '문구가 등록되지 않았습니다.' || this.value === '제목 없음') {
                         this.value = '';
@@ -874,10 +919,8 @@
             const updateImgBtn = document.createElement('button');
             updateImgBtn.className = 'update-img-btn';
             updateImgBtn.innerText = '수정'; 
-            
             updateImgBtn.addEventListener('mousedown', (e) => { e.stopPropagation(); item.setAttribute('draggable', false); });
             updateImgBtn.addEventListener('mouseleave', () => item.setAttribute('draggable', true));
-
             updateImgBtn.onclick = function(e) {
                 e.stopPropagation();
                 currentItemToUpdateId = id; 
@@ -887,18 +930,14 @@
             const toggleHideBtn = document.createElement('button');
             toggleHideBtn.className = 'toggle-hide-btn' + (isHidden ? ' hidden-mode' : '');
             toggleHideBtn.innerText = isHidden ? '보이기' : '숨기기';
-            
             toggleHideBtn.addEventListener('mousedown', (e) => { e.stopPropagation(); item.setAttribute('draggable', false); });
             toggleHideBtn.addEventListener('mouseleave', () => item.setAttribute('draggable', true));
-
             toggleHideBtn.onclick = function(e) {
                 e.stopPropagation();
                 const currentHideState = item.getAttribute('data-hidden') === 'true';
                 const nextHideState = !currentHideState;
-
                 item.setAttribute('data-hidden', nextHideState);
                 updateData(id, 'isHidden', nextHideState);
-
                 if (nextHideState) {
                     this.classList.add('hidden-mode');
                     this.innerText = '보이기';
@@ -921,35 +960,44 @@
             setTimeout(() => resizeGridItem(item), 10);
         }
 
-        document.getElementById('updateImageInput').addEventListener('change', function(e) {
+        // === 이미지 교체 ===
+        document.getElementById('updateImageInput').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (file && file.type.startsWith('image/') && currentItemToUpdateId) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const newImgSrc = event.target.result;
-                    
-                    updateData(currentItemToUpdateId, 'img_src', newImgSrc);
-                    
-                    const itemNode = document.querySelector(`.grid-item[data-id="${currentItemToUpdateId}"]`);
-                    if (itemNode) {
-                        itemNode.querySelector('img').src = newImgSrc;
-                        itemNode.querySelector('img').onload = () => resizeGridItem(itemNode);
+                showLoading('이미지 교체 중...');
+                const base64 = await fileToBase64(file);
+                try {
+                    const result = await gasPost({
+                        action: 'updateImage',
+                        id: currentItemToUpdateId,
+                        img_base64: base64,
+                        mimeType: file.type,
+                        fileName: file.name
+                    });
+
+                    if (result.success) {
+                        const itemNode = document.querySelector(`.grid-item[data-id="${currentItemToUpdateId}"]`);
+                        if (itemNode) {
+                            itemNode.querySelector('img').src = result.img_url;
+                            itemNode.querySelector('img').onload = () => resizeGridItem(itemNode);
+                        }
+                    } else {
+                        alert('이미지 교체 실패: ' + (result.error || ''));
                     }
-                    
-                    currentItemToUpdateId = null;
-                    e.target.value = '';
-                };
-                reader.readAsDataURL(file);
+                } catch (err) {
+                    alert('이미지 교체 오류: ' + err.message);
+                }
+                currentItemToUpdateId = null;
+                e.target.value = '';
+                hideLoading();
             }
         });
 
+        // === 유틸리티 ===
         function toggleTopButton() {
             const btnTop = document.getElementById('btnTop');
-            if (window.scrollY > 300) {
-                btnTop.classList.add('show');
-            } else {
-                btnTop.classList.remove('show');
-            }
+            if (window.scrollY > 300) btnTop.classList.add('show');
+            else btnTop.classList.remove('show');
         }
 
         function scrollToTop() {
@@ -964,115 +1012,88 @@
         }
         function closeLightbox() { document.getElementById('myModal').style.display = "none"; }
 
+        // === 데이터 CRUD (Google Sheets via GAS) ===
         function updateData(id, field, newValue) {
-            const transaction = db.transaction([storeName], "readwrite");
-            const store = transaction.objectStore(storeName);
-            const request = store.get(id);
-            request.onsuccess = function(e) {
-                const data = e.target.result;
-                if(data) { data[field] = newValue; store.put(data); }
-            };
+            if (!GAS_WEB_APP_URL) return;
+            gasGet({ action: 'update', id: id, field: field, value: String(newValue) })
+                .catch(err => console.error('Update error:', err));
         }
 
         function updateOrderInDB() {
+            if (!GAS_WEB_APP_URL) return;
             const items = document.querySelectorAll('.grid-item');
-            const transaction = db.transaction([storeName], "readwrite");
-            const store = transaction.objectStore(storeName);
+            const orderData = [];
             items.forEach((itemNode, index) => {
-                const id = itemNode.dataset.id;
-                const request = store.get(id);
-                request.onsuccess = function(e) {
-                    const data = e.target.result;
-                    if (data) { data.order = index; store.put(data); }
-                };
+                orderData.push({ id: itemNode.dataset.id, order: index });
             });
-        }
-
-        // --- 🚀 2중 정렬: 년도순(내림차순) 우선 -> 년도 같으면 사용자지정(order) 오름차순
-        function sortByYear() {
-            const transaction = db.transaction([storeName], "readwrite");
-            const store = transaction.objectStore(storeName);
-            const request = store.getAll();
-            request.onsuccess = function(e) {
-                let items = e.target.result;
-                if(!items || items.length === 0) return;
-                
-                items.sort((a, b) => {
-                    const yearA = parseInt(a.year) || 0;
-                    const yearB = parseInt(b.year) || 0;
-                    if (yearB !== yearA) {
-                        return yearB - yearA; // 년도 최신순
-                    }
-                    return a.order - b.order; // 년도가 같으면 드래그(order) 순서 유지
-                });
-                
-                items.forEach((item, index) => { item.order = index; store.put(item); });
-                loadGalleryData();
-            };
+            gasGet({ action: 'updateOrder', orderData: JSON.stringify(orderData) })
+                .catch(err => console.error('Order update error:', err));
         }
 
         function deleteImage(id) {
-            const transaction = db.transaction([storeName], "readwrite");
-            const store = transaction.objectStore(storeName);
-            store.delete(id);
+            if (!GAS_WEB_APP_URL) return;
+            gasGet({ action: 'delete', id: id })
+                .catch(err => console.error('Delete error:', err));
         }
 
-        function loadGalleryData() {
-            const transaction = db.transaction([storeName], "readonly");
-            const store = transaction.objectStore(storeName);
-            const request = store.getAll();
-            request.onsuccess = function(e) {
-                const items = e.target.result;
-                if(items && items.length > 0) {
+        async function loadGalleryData() {
+            if (!GAS_WEB_APP_URL) return;
+            showLoading('데이터 불러오는 중...');
+            try {
+                const result = await gasGet({ action: 'list' });
+                if (result.success && result.items) {
                     document.getElementById('grid').innerHTML = '';
-                    // 🚀 항상 년도 내림차순(최신순) 정렬 우선 적용, 년도가 같으면 드래그 순서 유지
+                    const items = result.items;
                     items.sort((a, b) => {
                         const yearA = parseInt(a.year) || 0;
                         const yearB = parseInt(b.year) || 0;
-                        if (yearB !== yearA) {
-                            return yearB - yearA; 
-                        }
-                        return a.order - b.order; 
+                        if (yearB !== yearA) return yearB - yearA;
+                        return a.order - b.order;
                     });
                     items.forEach(item => {
-                        createGridItem(item.id, item.img_src, item.caption, item.year, item.tag, item.url, item.isPc, item.isResponsive, item.isMobile, item.isHidden, item.tabCategory);
+                        createGridItem(item.id, item.img_url, item.caption, String(item.year), item.tag, item.url, item.isPc, item.isResponsive, item.isMobile, item.isHidden, item.tabCategory);
                     });
-                    switchTab('all'); 
-                } else {
-                    document.getElementById('grid').innerHTML = '';
+                    switchTab('all');
                 }
-            };
+            } catch (err) {
+                console.error('Load error:', err);
+                alert('데이터 불러오기 실패: ' + err.message);
+            }
+            hideLoading();
         }
 
-        function clearGalleryData() {
-            if (confirm("정말로 모든 데이터를 지우시겠습니까?")) {
-                const transaction = db.transaction([storeName], "readwrite");
-                const store = transaction.objectStore(storeName);
-                store.clear();
-                transaction.oncomplete = function() { document.getElementById('grid').innerHTML = ''; };
+        async function clearGalleryData() {
+            if (!GAS_WEB_APP_URL) return;
+            if (confirm("정말로 모든 데이터를 지우시겠습니까?\n(Google Drive 이미지도 함께 삭제됩니다)")) {
+                showLoading('전체 삭제 중...');
+                try {
+                    await gasGet({ action: 'clearAll' });
+                    document.getElementById('grid').innerHTML = '';
+                } catch (err) {
+                    alert('삭제 오류: ' + err.message);
+                }
+                hideLoading();
             }
         }
 
-        function exportFinalHTML() {
-            const transaction = db.transaction([storeName], "readonly");
-            const store = transaction.objectStore(storeName);
-            const request = store.getAll();
-
-            request.onsuccess = function(e) {
-                const items = e.target.result;
-                if(!items || items.length === 0) {
+        // === HTML 내보내기 (Drive URL 기반) ===
+        async function exportFinalHTML() {
+            if (!GAS_WEB_APP_URL) { alert('Google Apps Script URL을 먼저 설정해주세요.'); return; }
+            showLoading('HTML 생성 중...');
+            try {
+                const result = await gasGet({ action: 'list' });
+                if (!result.success || !result.items || result.items.length === 0) {
                     alert("등록된 이미지가 없습니다.");
+                    hideLoading();
                     return;
                 }
                 
-                // 배포용 HTML 추출 시 자동 년도순(내림차순) -> 드래그순 정렬
+                const items = result.items;
                 items.sort((a, b) => {
                     const yearA = parseInt(a.year) || 0;
                     const yearB = parseInt(b.year) || 0;
-                    if (yearB !== yearA) {
-                        return yearB - yearA; 
-                    }
-                    return a.order - b.order; 
+                    if (yearB !== yearA) return yearB - yearA;
+                    return a.order - b.order;
                 });
 
                 let exportTabsHtml = `<button class="tab-button active" onclick="switchTab('all')">전체</button>`;
@@ -1085,7 +1106,7 @@
                     if (item.isHidden) return;
 
                     let yearHtml = '';
-                    const rawYear = item.year ? item.year.trim() : '';
+                    const rawYear = item.year ? String(item.year).trim() : '';
                     if (rawYear !== '') {
                         yearHtml = `<p class="item-year" onclick="filterByYear('${rawYear}')">${rawYear}</p>`;
                     }
@@ -1094,37 +1115,28 @@
                     if (item.isPc) deviceHtml += `<span class="device-badge">PC</span>`;
                     if (item.isResponsive) deviceHtml += `<span class="device-badge">반응형</span>`;
                     if (item.isMobile) deviceHtml += `<span class="device-badge">모바일</span>`;
-                    
-                    if (deviceHtml !== '') {
-                        deviceHtml = `<div class="device-badges">${deviceHtml}</div>`;
-                    }
+                    if (deviceHtml !== '') deviceHtml = `<div class="device-badges">${deviceHtml}</div>`;
 
                     let tagHtml = '';
                     const rawTags = item.tag ? item.tag.trim() : '';
                     if (rawTags !== '') {
                         const tagsArray = rawTags.split(' ');
                         tagHtml = `<div class="tag-container">`;
-                        tagsArray.forEach(t => {
-                            if(t) {
-                                tagHtml += `<span class="item-tag" onclick="filterByTag('${t}')">${t}</span>`; 
-                            }
-                        });
+                        tagsArray.forEach(t => { if(t) tagHtml += `<span class="item-tag" onclick="filterByTag('${t}')">${t}</span>`; });
                         tagHtml += `</div>`;
                     }
 
                     let urlHtml = '';
                     if (item.url && item.url.trim() !== '') {
                         let link = item.url.trim();
-                        if(!link.startsWith('http://') && !link.startsWith('https://')) {
-                            link = 'http://' + link;
-                        }
+                        if(!link.startsWith('http://') && !link.startsWith('https://')) link = 'http://' + link;
                         urlHtml = `<a href="${link}" target="_blank" class="item-url" title="${item.url}">${item.url}</a>`;
                     }
 
                     gridHtml += `
             <div class="grid-item" data-tabCategory="${item.tabCategory || 'main'}" data-year="${rawYear}" data-tags="${rawTags}">
                 <div class="grid-item-content">
-                    <img src="${item.img_src}" alt="portfolio image" onclick="showLightbox(this.src)">
+                    <img src="${item.img_url}" alt="portfolio image" onclick="showLightbox(this.src)">
                     <div class="caption">
                         <div class="caption-header">
                             <div class="caption-title-row">
@@ -1140,8 +1152,52 @@
             </div>`;
                 });
 
-                // 여기서부터 보기 좋게 줄바꿈 처리된 HTML 템플릿입니다.
-                const finalHtml = `<!DOCTYPE html>
+                const finalHtml = generateExportTemplate(exportTabsHtml, gridHtml);
+
+                // --- 🚀 개선된 저장 방식: File System Access API 사용 시도 ---
+                if ('showSaveFilePicker' in window) {
+                    try {
+                        const handle = await window.showSaveFilePicker({
+                            suggestedName: 'index.html',
+                            types: [{
+                                description: 'HTML File',
+                                accept: { 'text/html': ['.html'] },
+                            }],
+                        });
+                        const writable = await handle.createWritable();
+                        await writable.write(finalHtml);
+                        await writable.close();
+                        alert('index.html로 성공적으로 저장되었습니다.');
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            console.error('Save error:', err);
+                            fallbackDownload(finalHtml);
+                        }
+                    }
+                } else {
+                    fallbackDownload(finalHtml);
+                }
+            } catch(err) {
+                alert('HTML 생성 오류: ' + err.message);
+            }
+            hideLoading();
+        }
+
+        function fallbackDownload(html) {
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html'; 
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('브라우저 다운로드 폴더에 index.html로 저장되었습니다. (해당 파일을 프로젝트 폴더로 옮겨주세요)');
+        }
+
+        function generateExportTemplate(exportTabsHtml, gridHtml) {
+            return `<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -1149,114 +1205,41 @@
     <title>Portfolio</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        body { 
-            font-family: 'Pretendard', sans-serif; 
-            background-color: #606b7b; 
-            margin: 0; 
-            padding: 40px 20px; 
-        }
-        
-        /* --- 🚀 커스텀 둥근 탭 스타일 --- */
-        .tabs {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto 30px;
-            background-color: transparent;
-            box-sizing: border-box;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .tab-button {
-            background: transparent; /* 🚀 기본 배경색 없음 */
-            border: 1px solid #ffffff52; /* 🚀 흰색 테두리 */
-            border-radius: 30px;
-            padding: 8px 20px; 
-            font-size: 15px;
-            font-weight: 500;
-            color: #ffffff52; /* 🚀 기본 흰색 글씨 */
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-sizing: border-box;
-        }
-
-        .tab-button:hover {
-            border-color: rgba(255, 255, 255, 0.7); /* 살짝 투명해지는 효과 */
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .tab-button.active { 
-            background: #2a2a2e; /* 🚀 선택된 탭 검은색 배경 */
-            border-color: #2a2a2e;
-            color: #ffffff; /* 🚀 선택된 탭 흰색 글씨 */
-            font-weight: 600;
-        }
-
-        .portfolio-grid { 
-            margin: 0 auto; 
-            width: 100%; 
-            max-width: 1400px; 
-            display: grid;
-            grid-template-columns: repeat(4, 1fr); 
-            column-gap: 20px; 
-            grid-auto-rows: 10px;
-            align-items: start;
-        }
+        body { font-family: 'Pretendard', sans-serif; background-color: #606b7b; margin: 0; padding: 40px 20px; }
+        .tabs { display: flex; gap: 10px; width: 100%; max-width: 1400px; margin: 0 auto 30px; background-color: transparent; box-sizing: border-box; flex-wrap: wrap; align-items: center; }
+        .tab-button { background: transparent; border: 1px solid #ffffff52; border-radius: 30px; padding: 8px 20px; font-size: 15px; font-weight: 500; color: #ffffff52; cursor: pointer; transition: all 0.2s ease; box-sizing: border-box; }
+        .tab-button:hover { border-color: rgba(255, 255, 255, 0.7); color: rgba(255, 255, 255, 0.7); }
+        .tab-button.active { background: #2a2a2e; border-color: #2a2a2e; color: #ffffff; font-weight: 600; }
+        .portfolio-grid { margin: 0 auto; width: 100%; max-width: 1400px; display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 20px; grid-auto-rows: 10px; align-items: start; }
         @media (max-width: 1200px) { .portfolio-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 900px) { .portfolio-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 600px) { .portfolio-grid { grid-template-columns: repeat(1, 1fr); } }
-        
-        .grid-item { 
-            position: relative; 
-            opacity: 0; 
-            transform: translateY(30px); 
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out; 
-        }
+        .grid-item { position: relative; opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
         .grid-item.hidden { display: none !important; }
         .grid-item.visible { opacity: 1; transform: translateY(0); }
-        
-        .grid-item-content {
-            background: #ffffff; 
-            border-radius: 0;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-
+        .grid-item-content { background: #ffffff; border-radius: 0; box-shadow: 0 6px 16px rgba(0,0,0,0.15); display: flex; flex-direction: column; padding: 10px; box-sizing: border-box; }
         .grid-item img { width: 100%; display: block; border: none; box-sizing: border-box; cursor: pointer; }
-        
         .caption { padding: 12px 0 8px 0; text-align: left; display: flex; flex-direction: column; gap: 6px; }
         .caption-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-        
         .caption-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .caption-text { margin: 0; color: #222222; font-size: 15px; font-weight: 600; }
         .device-badges { display: flex; gap: 4px; align-items: center; }
         .device-badge { background-color: #000000; color: #ffffff; border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: normal; letter-spacing: 0.5px; }
-
         .item-year { margin: 0; color: #666666; font-size: 14px; cursor: pointer; transition: color 0.2s; padding: 2px 4px; border-radius: 4px; margin-top: 2px; }
         .item-year:hover { color: #333333; text-decoration: underline; background-color: #f6f6f6; }
         .item-year.active { font-weight: bold; color: #fff; background-color: #333; text-decoration: none; }
-
         .tag-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px;}
-        
         .item-tag { color: #777777; font-size: 13px; background-color: #f6f6f6; border-radius: 4px; padding: 4px 6px; cursor: pointer; transition: 0.2s; }
         .item-tag:hover { text-decoration: underline; color: #333; }
         .item-tag.active { background-color: #333; color: #fff; text-decoration: none; font-weight: bold;}
-
         .item-url { display: inline-block; font-size: 13px; color: #888888; text-decoration: none; word-break: break-all; transition: color 0.2s; }
         .item-url:hover { color: #333333; text-decoration: underline; }
-
         .modal { display: none; position: fixed; z-index: 1000; padding-top: 50px; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.9); }
         .modal-content { margin: auto; display: block; width: 80%; max-width: 1000px; animation-name: zoom; animation-duration: 0.6s; }
         @keyframes zoom { from {transform:scale(0)} to {transform:scale(1)} }
         .close-btn { position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer; z-index: 1001; }
         .close-btn:hover, .close-btn:focus { color: #bbb; text-decoration: none; }
         #modalImg { width: 100%; height: auto; }
-
         .btn-top { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background-color: #333333; color: #ffffff; border: none; border-radius: 0; font-size: 20px; font-family: 'Pretendard', sans-serif; font-weight: bold; cursor: pointer; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s, transform 0.3s; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
         .btn-top.show { opacity: 1; visibility: visible; }
         .btn-top:hover { background-color: #000000; transform: translateY(-5px); }
@@ -1266,195 +1249,155 @@
     <div class="tabs" id="mainTabsContainer">
         ${exportTabsHtml}
     </div>
-
     <div class="portfolio-grid" id="mainGrid">
 ${gridHtml}
     </div>
-
     <div id="myModal" class="modal" onclick="closeLightbox()">
         <span class="close-btn" onclick="closeLightbox()">&times;</span>
-        <div class="modal-content">
-            <img id="modalImg">
-        </div>
+        <div class="modal-content"><img id="modalImg"></div>
     </div>
-
     <button class="btn-top" id="btnTop" onclick="scrollToTop()">↑</button>
-
     <script>
-        function resizeGridItem(item) {
-            const rowHeight = 10;
-            const content = item.querySelector('.grid-item-content');
-            if (!content) return;
-            const contentHeight = content.getBoundingClientRect().height;
-            const rowSpan = Math.ceil((contentHeight + 30) / rowHeight);
-            item.style.gridRowEnd = "span " + rowSpan;
-        }
-
-        function resizeAllGridItems() {
-            document.querySelectorAll('.grid-item').forEach(resizeGridItem);
-        }
-
+        function resizeGridItem(item) { const rowHeight = 10; const content = item.querySelector('.grid-item-content'); if (!content) return; const contentHeight = content.getBoundingClientRect().height; const rowSpan = Math.ceil((contentHeight + 30) / rowHeight); item.style.gridRowEnd = "span " + rowSpan; }
+        function resizeAllGridItems() { document.querySelectorAll('.grid-item').forEach(resizeGridItem); }
         window.addEventListener("resize", resizeAllGridItems);
         window.addEventListener("load", resizeAllGridItems);
-        
-        document.querySelectorAll('.grid-item img').forEach(img => {
-            if (img.complete) resizeGridItem(img.closest('.grid-item'));
-            else img.addEventListener('load', () => resizeGridItem(img.closest('.grid-item')));
-        });
-
-        let currentActiveYear = null;
-        let currentActiveTag = null;
-        
-        function switchTab(tab) {
-            const allItems = document.querySelectorAll('.grid-item');
-            const allTabButtons = document.querySelectorAll('.tab-button');
-            const allYears = document.querySelectorAll('.item-year');
-            const allTags = document.querySelectorAll('.item-tag');
-            
-            allTabButtons.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(\`.tab-button[onclick="switchTab('\${tab}')"]\`).classList.add('active');
-
-            allYears.forEach(y => y.classList.remove('active'));
-            allTags.forEach(t => t.classList.remove('active'));
-            currentActiveYear = null;
-            currentActiveTag = null;
-
-            allItems.forEach(item => {
-                const itemTab = item.getAttribute('data-tabCategory');
-                
-                if (tab === 'all') {
-                    item.classList.remove('hidden');
-                } else if (tab === itemTab) {
-                    item.classList.remove('hidden');
-                } else {
-                    item.classList.add('hidden');
-                }
-            });
-            setTimeout(resizeAllGridItems, 50);
-        }
-
-        function filterByYear(clickedYear) {
-            const allItems = document.querySelectorAll('.grid-item');
-            const allYears = document.querySelectorAll('.item-year');
-            const allTags = document.querySelectorAll('.item-tag');
-            const allTabButtons = document.querySelectorAll('.tab-button');
-            
-            allTabButtons.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(\`.tab-button[onclick="switchTab('all')"]\`).classList.add('active');
-
-            allTags.forEach(t => t.classList.remove('active'));
-            currentActiveTag = null;
-
-            if (currentActiveYear === clickedYear) {
-                allItems.forEach(item => item.classList.remove('hidden'));
-                allYears.forEach(y => y.classList.remove('active'));
-                currentActiveYear = null;
-            } 
-            else {
-                allItems.forEach(item => {
-                    const yearStr = item.getAttribute('data-year') || '';
-                    if (yearStr === clickedYear) {
-                        item.classList.remove('hidden');
-                    } else {
-                        item.classList.add('hidden');
-                    }
-                });
-
-                allYears.forEach(y => {
-                    if (y.innerText === clickedYear) y.classList.add('active');
-                    else y.classList.remove('active');
-                });
-                currentActiveYear = clickedYear;
-            }
-            setTimeout(resizeAllGridItems, 50);
-        }
-
-        function filterByTag(clickedTag) {
-            const allItems = document.querySelectorAll('.grid-item');
-            const allTags = document.querySelectorAll('.item-tag');
-            const allYears = document.querySelectorAll('.item-year');
-            const allTabButtons = document.querySelectorAll('.tab-button');
-
-            allTabButtons.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(\`.tab-button[onclick="switchTab('all')"]\`).classList.add('active');
-
-            allYears.forEach(y => y.classList.remove('active'));
-            currentActiveYear = null;
-
-            if (currentActiveTag === clickedTag) {
-                allItems.forEach(item => item.classList.remove('hidden'));
-                allTags.forEach(t => t.classList.remove('active'));
-                currentActiveTag = null;
-            } else {
-                allItems.forEach(item => {
-                    const tagsStr = item.getAttribute('data-tags') || '';
-                    if (tagsStr.includes(clickedTag)) {
-                        item.classList.remove('hidden');
-                    } else {
-                        item.classList.add('hidden');
-                    }
-                });
-
-                allTags.forEach(t => {
-                    if (t.innerText === clickedTag) t.classList.add('active');
-                    else t.classList.remove('active');
-                });
-                currentActiveTag = clickedTag;
-            }
-            setTimeout(resizeAllGridItems, 50);
-        }
-
+        document.querySelectorAll('.grid-item img').forEach(img => { if (img.complete) resizeGridItem(img.closest('.grid-item')); else img.addEventListener('load', () => resizeGridItem(img.closest('.grid-item'))); });
+        let currentActiveYear = null; let currentActiveTag = null;
+        function switchTab(tab) { const allItems = document.querySelectorAll('.grid-item'); const allTabButtons = document.querySelectorAll('.tab-button'); const allYears = document.querySelectorAll('.item-year'); const allTags = document.querySelectorAll('.item-tag'); allTabButtons.forEach(btn => btn.classList.remove('active')); document.querySelector(\`.tab-button[onclick="switchTab('\${tab}')"]\`).classList.add('active'); allYears.forEach(y => y.classList.remove('active')); allTags.forEach(t => t.classList.remove('active')); currentActiveYear = null; currentActiveTag = null; allItems.forEach(item => { const itemTab = item.getAttribute('data-tabCategory'); if (tab === 'all') item.classList.remove('hidden'); else if (tab === itemTab) item.classList.remove('hidden'); else item.classList.add('hidden'); }); setTimeout(resizeAllGridItems, 50); }
+        function filterByYear(clickedYear) { const allItems = document.querySelectorAll('.grid-item'); const allYears = document.querySelectorAll('.item-year'); const allTags = document.querySelectorAll('.item-tag'); const allTabButtons = document.querySelectorAll('.tab-button'); allTabButtons.forEach(btn => btn.classList.remove('active')); document.querySelector(\`.tab-button[onclick="switchTab('all')"]\`).classList.add('active'); allTags.forEach(t => t.classList.remove('active')); currentActiveTag = null; if (currentActiveYear === clickedYear) { allItems.forEach(item => item.classList.remove('hidden')); allYears.forEach(y => y.classList.remove('active')); currentActiveYear = null; } else { allItems.forEach(item => { const yearStr = item.getAttribute('data-year') || ''; if (yearStr === clickedYear) item.classList.remove('hidden'); else item.classList.add('hidden'); }); allYears.forEach(y => { if (y.innerText === clickedYear) y.classList.add('active'); else y.classList.remove('active'); }); currentActiveYear = clickedYear; } setTimeout(resizeAllGridItems, 50); }
+        function filterByTag(clickedTag) { const allItems = document.querySelectorAll('.grid-item'); const allTags = document.querySelectorAll('.item-tag'); const allYears = document.querySelectorAll('.item-year'); const allTabButtons = document.querySelectorAll('.tab-button'); allTabButtons.forEach(btn => btn.classList.remove('active')); document.querySelector(\`.tab-button[onclick="switchTab('all')"]\`).classList.add('active'); allYears.forEach(y => y.classList.remove('active')); currentActiveYear = null; if (currentActiveTag === clickedTag) { allItems.forEach(item => item.classList.remove('hidden')); allTags.forEach(t => t.classList.remove('active')); currentActiveTag = null; } else { allItems.forEach(item => { const tagsStr = item.getAttribute('data-tags') || ''; if (tagsStr.includes(clickedTag)) item.classList.remove('hidden'); else item.classList.add('hidden'); }); allTags.forEach(t => { if (t.innerText === clickedTag) t.classList.add('active'); else t.classList.remove('active'); }); currentActiveTag = clickedTag; } setTimeout(resizeAllGridItems, 50); }
         const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target); 
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.grid-item').forEach(item => {
-            observer.observe(item);
-        });
-
-        function showLightbox(src) {
-            const modal = document.getElementById('myModal');
-            const modalImg = document.getElementById('modalImg');
-            modal.style.display = "block";
-            modalImg.src = src;
-        }
-        function closeLightbox() {
-            document.getElementById('myModal').style.display = "none";
-        }
-
-        window.addEventListener('scroll', () => {
-            const btnTop = document.getElementById('btnTop');
-            if (window.scrollY > 300) {
-                btnTop.classList.add('show');
-            } else {
-                btnTop.classList.remove('show');
-            }
-        });
-
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        const observer = new IntersectionObserver((entries, observer) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } }); }, observerOptions);
+        document.querySelectorAll('.grid-item').forEach(item => { observer.observe(item); });
+        function showLightbox(src) { document.getElementById('myModal').style.display = "block"; document.getElementById('modalImg').src = src; }
+        function closeLightbox() { document.getElementById('myModal').style.display = "none"; }
+        window.addEventListener('scroll', () => { const btnTop = document.getElementById('btnTop'); if (window.scrollY > 300) btnTop.classList.add('show'); else btnTop.classList.remove('show'); });
+        function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
     <\/script>
 </body>
 </html>`;
+        }
 
-                const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'index.html'; 
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+        // === 이전 로컬 데이터 마이그레이션 (IndexedDB -> GAS) ===
+        async function migrateLocalToCloud() {
+            if (!GAS_WEB_APP_URL) { alert('Google Apps Script URL을 먼저 설정하고 연결해주세요.'); return; }
+            
+            const dbName = "PortfolioGalleryDB";
+            const storeName = "images";
+            
+            // DB 존재 여부 확인을 위해 버전 없이 열기 시도
+            const openRequest = indexedDB.open(dbName);
+            
+            openRequest.onerror = function() { alert('이전 로컬 데이터를 가져오는 데 실패했습니다.'); };
+            
+            openRequest.onsuccess = async function(e) {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(storeName)) {
+                    alert('마이그레이션할 로컬 데이터가 존재하지 않습니다.');
+                    db.close();
+                    return;
+                }
+                
+                const transaction = db.transaction([storeName], "readonly");
+                const store = transaction.objectStore(storeName);
+                const getAllReq = store.getAll();
+                
+                getAllReq.onsuccess = async function(event) {
+                    const items = event.target.result;
+                    db.close();
+
+                    if (!items || items.length === 0) {
+                        alert('로컬 저장소에 저장된 데이터가 없습니다.');
+                        return;
+                    }
+                    
+                    if (!confirm(`${items.length}개의 로컬 데이터를 클라우드(Drive/Sheets)로 복사하시겠습니까?\n\n(이미지 개수에 따라 수 분이 소요될 수 있으며, 완료될 때까지 브라우저를 닫지 마세요.)`)) return;
+                    
+                    showLoading(`마이그레이션 중... (0/${items.length})`);
+                    
+                    let successCount = 0;
+                    for (let i = 0; i < items.length; i++) {
+                        showLoading(`마이그레이션 중... (${i + 1}/${items.length})`);
+                        const item = items[i];
+                        
+                        try {
+                            const uploadData = {
+                                action: 'upload',
+                                items: [{
+                                    id: item.id || Date.now().toString() + Math.random().toString(36).substring(2, 9),
+                                    img_base64: item.img_src,
+                                    caption: item.caption || '',
+                                    year: item.year || '',
+                                    tag: item.tag || '',
+                                    url: item.url || '',
+                                    isPc: !!item.isPc,
+                                    isResponsive: !!item.isResponsive,
+                                    isMobile: !!item.isMobile,
+                                    order: Number(item.order) || Date.now(),
+                                    isHidden: !!item.isHidden,
+                                    tabCategory: item.tabCategory || (tabsConfig[0] ? tabsConfig[0].id : 'main')
+                                }]
+                            };
+                            
+                            const res = await gasPost(uploadData);
+                            if (res.success) successCount++;
+                        } catch (err) {
+                            console.error('Migration error for item:', item.id, err);
+                        }
+                    }
+                    
+                    hideLoading();
+                    alert(`${items.length}개 중 ${successCount}개의 데이터가 성공적으로 클라우드(Drive/Sheets)로 이전되었습니다.`);
+                    loadGalleryData(); 
+                };
             };
         }
+
+        // === 앱 초기화 ===
+        async function initApp() {
+            // GAS URL 상태 표시
+            const savedUrl = localStorage.getItem('portfolio_gas_url');
+            if (savedUrl) {
+                GAS_WEB_APP_URL = savedUrl;
+                document.getElementById('gasUrlInput').value = savedUrl;
+                document.getElementById('gasConfig').classList.add('connected');
+                document.getElementById('migrateBtn').style.display = 'inline-block';
+            }
+
+            // 탭 설정 불러오기
+            if (GAS_WEB_APP_URL) {
+                try {
+                    const tabResult = await gasGet({ action: 'loadTabs' });
+                    if (tabResult.success && tabResult.config) {
+                        tabsConfig = JSON.parse(tabResult.config);
+                        localStorage.setItem('portfolio_tabs', JSON.stringify(tabsConfig));
+                    } else {
+                        const localTabs = localStorage.getItem('portfolio_tabs');
+                        if (localTabs) tabsConfig = JSON.parse(localTabs);
+                    }
+                } catch(e) {
+                    const localTabs = localStorage.getItem('portfolio_tabs');
+                    if (localTabs) tabsConfig = JSON.parse(localTabs);
+                }
+            } else {
+                const localTabs = localStorage.getItem('portfolio_tabs');
+                if (localTabs) tabsConfig = JSON.parse(localTabs);
+            }
+
+            renderTabsUI();
+            loadGalleryData();
+
+            window.addEventListener('load', applyScrollFade);
+            window.addEventListener('scroll', () => {
+                requestAnimationFrame(applyScrollFade);
+                toggleTopButton();
+            });
+        }
+
+        // 앱 시작
+        initApp();
     </script>
+
 </body>
 </html>
