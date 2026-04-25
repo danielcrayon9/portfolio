@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ease-smooth: cubic-bezier(0.33, 1, 0.68, 1);
+            --ease-out-soft: cubic-bezier(0.22, 0.99, 0.26, 0.99);
+            --dur-split: 0.95s;
+            --dur-reveal: 0.78s;
+            --dur-ui: 0.72s;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            height: 100%;
+            max-height: 100vh;
+            max-height: 100dvh;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background: #050706;
+            color: #e8e6e1;
+        }
+
+        /* 한 화면(100vw × 100dvh)에 고정, 스크롤 없음 */
+        .split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+            width: 100%;
+            max-width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            max-height: 100vh;
+            max-height: 100dvh;
+            min-height: 0;
+            overflow: hidden;
+            transition: grid-template-columns var(--dur-split) var(--ease-smooth);
+        }
+
+        @supports selector(:has(*)) {
+            .split:has(.half-left:hover) {
+                grid-template-columns: 1.32fr 0.68fr;
+            }
+
+            .split:has(.half-right:hover) {
+                grid-template-columns: 0.68fr 1.32fr;
+            }
+        }
+
+        .half {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: clamp(1rem, 3.2dvh, 2.25rem) 0.75rem clamp(0.85rem, 2.5dvh, 1.85rem);
+            text-decoration: none;
+            color: inherit;
+            overflow: hidden;
+            background-repeat: no-repeat;
+            background-color: #0c1210;
+            transition: filter var(--dur-ui) var(--ease-out-soft);
+        }
+
+        .half::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(5, 8, 7, 0.45);
+            z-index: 0;
+            transition: background var(--dur-ui) var(--ease-out-soft);
+        }
+
+        .half:hover,
+        .half:focus-visible {
+            filter: brightness(1.05);
+            outline: none;
+        }
+
+        .half:hover::before,
+        .half:focus-visible::before {
+            background: rgba(5, 8, 7, 0.22);
+        }
+
+        .half-left {
+            background-image: url('assets/split-reference.png');
+            background-size: 200% 100%;
+            background-position: 0% center;
+        }
+
+        .half-right {
+            background-image: url('assets/split-reference.png');
+            background-size: 200% 100%;
+            background-position: 100% center;
+        }
+
+        @supports (background-blend-mode: multiply) {
+
+            .half-left,
+            .half-right {
+                background-color: #142018;
+                background-blend-mode: multiply;
+            }
+        }
+
+        .half > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .v-axis {
+            position: absolute;
+            left: 50%;
+            top: 12%;
+            bottom: 12%;
+            width: 1px;
+            transform: translateX(-50%);
+            background: linear-gradient(
+                to bottom,
+                transparent 0%,
+                rgba(255, 255, 255, 0.2) 12%,
+                rgba(255, 255, 255, 0.16) 50%,
+                rgba(255, 255, 255, 0.2) 88%,
+                transparent 100%
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .top-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.92;
+            transition:
+                transform var(--dur-ui) var(--ease-smooth),
+                opacity calc(var(--dur-ui) * 0.85) var(--ease-out-soft);
+        }
+
+        .half:hover .top-icon {
+            transform: translateY(-2px);
+            opacity: 1;
+        }
+
+        .top-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.78);
+            stroke-width: 1.2;
+        }
+
+        /* 중앙: 호버 시 문구 + pill → 자물쇠 */
+        .mid {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(1rem, 3vh, 1.75rem);
+            min-height: 0;
+            width: 100%;
+        }
+
+        .hover-reveal {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.65rem;
+            font-family: 'Outfit', system-ui, sans-serif;
+            opacity: 0;
+            transform: translateY(10px);
+            transition:
+                opacity var(--dur-reveal) var(--ease-smooth),
+                transform calc(var(--dur-reveal) + 0.08s) var(--ease-smooth);
+            pointer-events: none;
+        }
+
+        .half:hover .hover-reveal,
+        .half:focus-visible .hover-reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .eyebrow {
+            margin: 0;
+            font-size: 0.68rem;
+            font-weight: 500;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 0.55rem 1.35rem;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.96);
+            color: #141210;
+            box-shadow: 0 6px 28px rgba(0, 0, 0, 0.28);
+            transform: scale(0.96);
+            transition:
+                transform var(--dur-ui) var(--ease-smooth),
+                box-shadow var(--dur-ui) var(--ease-out-soft);
+        }
+
+        .half:hover .pill,
+        .half:focus-visible .pill {
+            transform: scale(1);
+            box-shadow: 0 10px 36px rgba(0, 0, 0, 0.35);
+        }
+
+        .circle-lock {
+            width: clamp(52px, 8vw, 64px);
+            height: clamp(52px, 8vw, 64px);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.94);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            transition:
+                transform var(--dur-ui) var(--ease-smooth),
+                box-shadow var(--dur-ui) var(--ease-out-soft);
+            display:none;
+        }
+
+        .half:hover .circle-lock,
+        .half:focus-visible .circle-lock {
+            transform: scale(1.06);
+            box-shadow: 0 14px 44px rgba(0, 0, 0, 0.4);
+        }
+
+        .circle-lock svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: #1a1a1a;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .bottom-type {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.15rem;
+            transition: transform var(--dur-ui) var(--ease-smooth);
+        }
+
+        .half:hover .bottom-type,
+        .half:focus-visible .bottom-type {
+            transform: translateY(-3px);
+        }
+
+        .big-num {
+            font-size: clamp(3.5rem, 14vw, 7rem);
+            font-weight: 500;
+            line-height: 0.95;
+            letter-spacing: -0.04em;
+            text-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+            transition: transform var(--dur-ui) var(--ease-smooth);
+        }
+
+        .half:hover .big-num,
+        .half:focus-visible .big-num {
+            transform: scale(1.015);
+        }
+
+        .book-label {
+            font-size: clamp(0.7rem, 2vw, 0.85rem);
+            font-weight: 600;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (max-width: 520px) {
+            .split {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+
+            @supports selector(:has(*)) {
+
+                .split:has(.half-left:hover),
+                .split:has(.half-right:hover) {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .half {
+                height: 100%;
+                min-height: 0;
+                background-size: 100% 200%;
+            }
+
+            .half-left {
+                background-position: center 0%;
+            }
+
+            .half-right {
+                background-position: center 100%;
+            }
+
+            .v-axis {
+                top: 10%;
+                bottom: 10%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .split,
+            .half,
+            .hover-reveal,
+            .pill,
+            .circle-lock,
+            .bottom-type,
+            .big-num,
+            .top-icon {
+                transition: none !important;
+            }
+
+            .split:has(.half-left:hover),
+            .split:has(.half-right:hover) {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .hover-reveal {
+                opacity: 1;
+                transform: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="split">
+        <a class="half half-left" href="scroll-builder/index.html">
+            <span class="sr-only">프로젝트 연도별 — scroll-builder</span>
+            <div class="v-axis" aria-hidden="true"></div>
+            <div class="top-icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" aria-hidden="true">
+                    <path d="M16 4c-2 4-6 7-10 8 2 2 3 5 3 8 0 3-1 6-3 8 4 1 8 4 10 8 2-4 6-7 10-8-2-2-3-5-3-8 0-3 1-6 3-8-4-1-8-4-10-8z" />
+                    <path d="M6 12c4 1 8 0 12-2M26 12c-4 1-8 0-12-2" opacity="0.6" />
+                </svg>
+            </div>
+            <div class="mid">
+                <div class="hover-reveal" aria-hidden="true">
+                    <p class="eyebrow">Watch now</p>
+                    <span class="pill">Open timeline</span>
+                </div>
+                <span class="circle-lock">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="11" width="14" height="10" rx="1" />
+                        <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                    </svg>
+                </span>
+            </div>
+            <div class="bottom-type">
+                <span class="big-num" aria-hidden="true">01</span>
+                <span class="book-label">Book</span>
+            </div>
+        </a>
+
+        <a class="half half-right" href="pic-upload/index.html">
+            <span class="sr-only">포트폴리오 이미지 — pic-upload</span>
+            <div class="v-axis" aria-hidden="true"></div>
+            <div class="top-icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" aria-hidden="true">
+                    <path d="M16 6l10 10-10 10L6 16 16 6z" />
+                </svg>
+            </div>
+            <div class="mid">
+                <div class="hover-reveal" aria-hidden="true">
+                    <p class="eyebrow">Coming soon</p>
+                    <span class="pill">Get notified</span>
+                </div>
+                <span class="circle-lock">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="5" y="11" width="14" height="10" rx="1" />
+                        <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                    </svg>
+                </span>
+            </div>
+            <div class="bottom-type">
+                <span class="big-num" aria-hidden="true">02</span>
+                <span class="book-label">Book</span>
+            </div>
+        </a>
+    </div>
+</body>
+
+</html>
