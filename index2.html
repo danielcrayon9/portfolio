@@ -203,5 +203,108 @@
     </div>
     <!-- //profile -->
 
+<script>
+(function () {
+    var section = document.querySelector(".section.slogan");
+    var em = section && section.querySelector(".all_mark em");
+    if (!em) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    function startSloganMarkFly() {
+        var sRect = section.getBoundingClientRect();
+        var startLeft = sRect.left + sRect.width * 0.1;
+        var startTop = sRect.top + sRect.height * 0.1;
+        var startW = sRect.width * 0.8;
+        var startH = sRect.height * 0.8;
+
+        var rect = em.getBoundingClientRect();
+        var endLeft = rect.left;
+        var endTop = rect.top;
+        var endW = rect.width;
+        var endH = rect.height;
+
+        var cs = window.getComputedStyle(em);
+        var bg = cs.backgroundImage;
+        var bgPos = cs.backgroundPosition;
+        var bgSize = cs.backgroundSize;
+        var bgRepeat = cs.backgroundRepeat;
+
+        em.style.position = "fixed";
+        em.style.left = startLeft + "px";
+        em.style.top = startTop + "px";
+        em.style.width = startW + "px";
+        em.style.height = startH + "px";
+        em.style.margin = "0";
+        em.style.bottom = "auto";
+        em.style.right = "auto";
+        em.style.zIndex = "100";
+        em.style.boxSizing = "border-box";
+        em.style.transformOrigin = "center center";
+        em.style.backgroundImage = bg;
+        em.style.backgroundPosition = bgPos || "center center";
+        em.style.backgroundSize = bgSize || "contain";
+        em.style.backgroundRepeat = bgRepeat || "no-repeat";
+        em.style.opacity = "0";
+        em.style.transform = "rotate(0deg)";
+
+        var delayMs = 1050;
+        var durationMs = 1500;
+
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                var anim = em.animate(
+                    [
+                        {
+                            opacity: 0,
+                            left: startLeft + "px",
+                            top: startTop + "px",
+                            width: startW + "px",
+                            height: startH + "px",
+                            transform: "rotate(0deg)",
+                            offset: 0
+                        },
+                        {
+                            opacity: 1,
+                            left: startLeft + "px",
+                            top: startTop + "px",
+                            width: startW + "px",
+                            height: startH + "px",
+                            transform: "rotate(0deg)",
+                            offset: 0.12
+                        },
+                        {
+                            opacity: 1,
+                            left: endLeft + "px",
+                            top: endTop + "px",
+                            width: endW + "px",
+                            height: endH + "px",
+                            transform: "rotate(360deg)",
+                            offset: 1
+                        }
+                    ],
+                    {
+                        duration: durationMs,
+                        delay: delayMs,
+                        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+                        fill: "forwards"
+                    }
+                );
+
+                anim.onfinish = function () {
+                    anim.cancel();
+                    em.removeAttribute("style");
+                };
+            });
+        });
+    }
+
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(startSloganMarkFly);
+    } else {
+        startSloganMarkFly();
+    }
+})();
+</script>
 </body>
 </html>
