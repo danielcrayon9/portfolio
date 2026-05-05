@@ -144,3 +144,14 @@ strong{
 	--formfs: 13px;
 	--formc: #444444;
 }
+
+::selection {
+	background-color: #0004EB;
+	color: #fff;             
+  }
+  
+  /* 파이어폭스 등 브라우저 호환성을 위한 접두사 */
+  ::-moz-selection {
+	background-color: #0004EB;
+	color: #fff;
+  }
