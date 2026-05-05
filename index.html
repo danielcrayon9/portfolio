@@ -2,16 +2,35 @@
 <html lang="ko">
     <head>    
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1, IE=edge">
-    <meta name="language"        content="korean">
-    <meta name="distribution"    content="global">
-    <meta name="author"          content="Danielcrayon9">
-    <meta name="publisher"       content="Danielcrayon9">
-    <meta name="copyright"       content="2026 Danielcrayon9">
-    <meta name="description"     content="2026 UI/UX 디자이너 포트폴리오. Tools : Photoshop, Illustration, Figma, XD, html, css, scss">
-    <meta name="keywords"        content="UIUX, UIUX디자이너, 웹퍼블리셔, 웹접근성전문가">
+
+    <meta http-equiv="Expires" content="-1">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=yes">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="language" content="korean">
+    <meta name="distribution" content="global">
+    <meta name="author" content="Danielcrayon9">
+    <meta name="publisher" content="Danielcrayon9">
+    <meta name="copyright" content="Danielcrayon9">
+    <meta name="description" content="UI/UX 디자이너 포트폴리오. Tools : Photoshop, Illustration, Figma, XD, html, css, scss">
+    <meta name="keywords" content="UIUX, UIUX디자이너, 웹퍼블리셔, 웹접근성전문가">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Danielcrayon9">
+    <meta property="og:description" content="Danielcrayon9">
+    <meta property="og:url" content="https://www.assembly.go.kr">
+    <meta property="og:image" content="assets/icon_all.svg">
+    <meta name="twitter:title" content="Danielcrayon9" />
+    <meta name="twitter:description" content="Danielcrayon9" />
+    <meta name="twitter:image" content="assets/icon_all.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <title>Portfolio</title>
+
     <link rel="stylesheet" href="css/default.css" type="text/css">
     <link rel="stylesheet" href="css/style.css" type="text/css">
 </head>
@@ -110,7 +129,22 @@
     <!-- timeline -->
     <div class="section timeline">
         <div>
-            <img src="assets/timeline.png" alt="">
+            <div class="timeline_line">
+                <img src="assets/icon_all_w.svg" class="timeline_icon_all">
+                <span class="timeline_year_first">2000</span>
+                <span class="timeline_year_last">2026</span>
+                <div class="timeline_info">
+                    <span class="timeline_info01">*{</span>
+                    <span class="timeline_info02">experience : <span class="timeline_count" data-end="26">1</span> years;</span>
+                    <span class="timeline_info03">passion : <span class="timeline_random_word">infinite</span>;</span>
+                    <span class="timeline_info04">}</span>
+                </div>
+                <svg class="timeline_curve_svg" viewBox="0 0 881 571" aria-hidden="true" focusable="false">
+                    <path class="timeline_curve_path" d="M 75 522 C 130 222 425 65 824 62"></path>
+                    <circle class="timeline_curve_dot timeline_curve_dot--start" cx="75" cy="522" r="11"></circle>
+                    <circle class="timeline_curve_dot timeline_curve_dot--end" cx="824" cy="62" r="11"></circle>
+                </svg>
+            </div>
         </div>
     </div>
     <!-- //timeline -->
@@ -353,13 +387,83 @@
 <script>
 (function () {
     var ux = document.querySelector(".index2-page .user_experience");
+    var timeline = document.querySelector(".index2-page .timeline");
     var profile = document.querySelector(".index2-page .profile");
-    if (!ux && !profile) return;
+    if (!ux && !timeline && !profile) return;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         if (ux) ux.classList.add("ux-revealed");
+        if (timeline) {
+            timeline.classList.add("timeline-revealed");
+            setTimelineTextFinal(timeline);
+        }
         if (profile) profile.classList.add("profile-revealed");
         return;
+    }
+
+    function setTimelineTextFinal(target) {
+        var count = target.querySelector(".timeline_count");
+        var word = target.querySelector(".timeline_random_word");
+        if (count) count.textContent = count.getAttribute("data-end") || "26";
+        if (word) word.textContent = "infinite";
+    }
+
+    function getTimelineMotionDuration(target) {
+        var icon = target.querySelector(".timeline_icon_all");
+        if (!icon) return 4200;
+
+        var duration = window.getComputedStyle(icon).animationDuration.split(",")[0].trim();
+        if (duration.endsWith("ms")) return parseFloat(duration) || 4200;
+        if (duration.endsWith("s")) return (parseFloat(duration) || 4.2) * 1000;
+        return 4200;
+    }
+
+    function runTimelineTextMotion(target) {
+        if (!target || target.dataset.timelineTextDone === "true") return;
+        target.dataset.timelineTextDone = "true";
+
+        var count = target.querySelector(".timeline_count");
+        var word = target.querySelector(".timeline_random_word");
+        var duration = getTimelineMotionDuration(target);
+
+        if (count) {
+            var end = parseInt(count.getAttribute("data-end"), 10) || 26;
+            var startTime = null;
+
+            function countFrame(now) {
+                if (startTime === null) startTime = now;
+                var progress = Math.min((now - startTime) / duration, 1);
+                count.textContent = String(Math.max(1, Math.round(1 + (end - 1) * progress)));
+                if (progress < 1) {
+                    requestAnimationFrame(countFrame);
+                } else {
+                    count.textContent = String(end);
+                }
+            }
+
+            requestAnimationFrame(countFrame);
+        }
+
+        if (word) {
+            var words = [
+                "creative",
+                "curious",
+                "adaptive",
+                "steady",
+                "precise",
+                "bold",
+                "endless",
+                "infinite"
+            ];
+            var shuffle = setInterval(function () {
+                word.textContent = words[Math.floor(Math.random() * (words.length - 1))];
+            }, 90);
+
+            window.setTimeout(function () {
+                clearInterval(shuffle);
+                word.textContent = "infinite";
+            }, duration);
+        }
     }
 
     function observeReveal(el, className, options) {
@@ -369,6 +473,9 @@
                 entries.forEach(function (entry) {
                     if (!entry.isIntersecting) return;
                     el.classList.add(className);
+                    if (className === "timeline-revealed") {
+                        runTimelineTextMotion(el);
+                    }
                     io.unobserve(el);
                 });
             },
@@ -380,6 +487,11 @@
     observeReveal(ux, "ux-revealed", {
         threshold: 0.06,
         rootMargin: "0px 0px -12% 0px"
+    });
+
+    observeReveal(timeline, "timeline-revealed", {
+        threshold: 0.35,
+        rootMargin: "0px 0px -10% 0px"
     });
 
     observeReveal(profile, "profile-revealed", {
